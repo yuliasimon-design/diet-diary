@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="飲食日記">
+<title>飲食日記</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Noto Sans TC', sans-serif; background: #f5f2ed; min-height: 100vh; -webkit-tap-highlight-color: transparent; }
+  #app { max-width: 480px; margin: 0 auto; padding-bottom: 40px; }
+  button { cursor: pointer; font-family: inherit; }
+  input { font-family: inherit; }
+
+  /* Header */
+  .header { background: #fff; padding: 16px 20px 12px; position: sticky; top: 0; z-index: 10; box-shadow: 0 1px 6px rgba(0,0,0,.07); }
+  .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .header-top h1 { font-size: 24px; font-weight: 800; color: #2d4a38; }
+  .header-actions { display: flex; gap: 8px; align-items: center; }
+  .date-badge { font-size: 13px; color: #666; background: #f0ede8; border-radius: 20px; padding: 4px 12px; }
+  .btn-settings { background: #f0ede8; border: none; border-radius: 20px; padding: 4px 12px; font-size: 13px; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 4px; }
+  .tab-btn { flex: 1; padding: 8px 4px; border-radius: 20px; border: none; font-size: 13px; font-weight: 400; background: transparent; color: #666; transition: all .2s; }
+  .tab-btn.active { background: #3d6b4f; color: #fff; font-weight: 700; }
+
+  /* Content */
+  .content { padding: 16px 16px 0; display: flex; flex-direction: column; gap: 14px; }
+
+  /* Cards */
+  .card { background: #fff; border-radius: 16px; padding: 16px; box-shadow: 0 1px 6px rgba(0,0,0,.06); }
+  .card-sm { background: #fff; border-radius: 12px; padding: 12px 14px; box-shadow: 0 1px 4px rgba(0,0,0,.05); margin-bottom: 8px; }
+
+  /* Alert */
+  .alert { background: #fff8e6; border: 1px solid #f5c842; border-radius: 12px; padding: 10px 14px; font-size: 13px; color: #8a6d00; }
+
+  /* Nutrition grid */
+  .nutrition-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .nutrition-label { font-size: 12px; color: #999; margin-bottom: 2px; }
+  .nutrition-val { font-size: 18px; font-weight: 700; }
+  .nutrition-sub { font-size: 12px; font-weight: 400; color: #aaa; }
+  .progress-bar { height: 4px; background: #eee; border-radius: 2px; margin-top: 4px; overflow: hidden; }
+  .progress-fill { height: 4px; border-radius: 2px; transition: width .4s; }
+
+  /* Water row */
+  .water-row { display: flex; align-items: center; gap: 8px; }
+  .water-btns { display: flex; gap: 4px; margin-left: auto; }
+  .water-btn { border: 1px solid #cce; border-radius: 20px; padding: 4px 10px; font-size: 12px; background: #f0f5ff; }
+  .water-reset { border: 1px solid #ddd; border-radius: 20px; padding: 4px 10px; font-size: 12px; background: #f9f9f9; }
+
+  /* Pill buttons */
+  .pills { display: flex; gap: 8px; flex-wrap: wrap; }
+  .pill { padding: 6px 14px; border-radius: 20px; border: none; font-size: 13px; background: #eee; color: #555; transition: all .2s; }
+  .pill.active { background: #3d6b4f; color: #fff; }
+
+  /* Input row */
+  .input-row { display: flex; gap: 8px; align-items: center; }
+  .input-row input { flex: 1; border: 1px solid #e0ddd8; border-radius: 10px; padding: 8px 12px; font-size: 14px; outline: none; }
+  .input-row input:focus { border-color: #3d6b4f; }
+  .btn-primary { background: #3d6b4f; color: #fff; border: none; border-radius: 10px; padding: 8px 14px; font-size: 13px; white-space: nowrap; }
+  .btn-secondary { background: #5b8a6f; color: #fff; border: none; border-radius: 10px; padding: 8px 14px; font-size: 13px; }
+  .btn-primary:disabled, .btn-secondary:disabled { opacity: 0.6; }
+
+  /* Log item */
+  .log-item { display: flex; justify-content: space-between; align-items: center; }
+  .log-item-name { font-weight: 600; font-size: 14px; }
+  .log-item-desc { font-size: 12px; color: #999; }
+  .log-item-right { display: flex; gap: 10px; align-items: center; }
+  .log-item-cal { color: #e05a2b; font-weight: 700; }
+  .log-item-macro { font-size: 11px; color: #888; }
+  .btn-remove { background: none; border: none; color: #ccc; font-size: 18px; padding: 0 4px; }
+  .meal-section-label { font-size: 13px; color: #888; font-weight: 600; margin-bottom: 6px; margin-top: 4px; }
+
+  /* Exercise */
+  .exercise-hero { background: #3d6b4f; border-radius: 16px; padding: 16px; color: #fff; text-align: center; }
+  .exercise-hero-label { font-size: 13px; opacity: .8; }
+  .exercise-hero-val { font-size: 36px; font-weight: 800; }
+  .exercise-item { display: flex; justify-content: space-between; align-items: center; }
+  .exercise-burn { color: #3d6b4f; font-weight: 700; }
+
+  /* Calendar */
+  .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .cal-nav { background: none; border: 1px solid #ddd; border-radius: 8px; padding: 4px 12px; font-size: 13px; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; text-align: center; }
+  .cal-day-label { font-size: 11px; color: #aaa; padding: 4px 0; }
+  .cal-day { padding: 6px 2px; border-radius: 8px; cursor: pointer; font-size: 13px; transition: all .15s; }
+  .cal-day:hover { background: #f0ede8; }
+  .cal-day.today { background: #e8f0eb; color: #3d6b4f; font-weight: 700; }
+  .cal-day.selected { background: #3d6b4f; color: #fff; }
+  .cal-day-kcal { font-size: 9px; color: #e05a2b; }
+  .cal-day.selected .cal-day-kcal { color: #cfe; }
+  .day-detail-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #f5f5f5; font-size: 13px; }
+
+  /* Weight */
+  .weight-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .weight-hero { border-radius: 16px; padding: 16px; color: #fff; text-align: center; }
+  .weight-hero-val { font-size: 32px; font-weight: 800; }
+  .weight-bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 120px; overflow-x: auto; }
+  .weight-bar-wrap { display: flex; flex-direction: column; align-items: center; min-width: 28px; }
+  .weight-bar { width: 20px; background: #3d6b4f; border-radius: 4px 4px 0 0; opacity: .85; }
+  .weight-history-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #f5f5f5; font-size: 14px; }
+
+  /* AI advice */
+  .advice-card { background: #fff; border-radius: 16px; padding: 16px; box-shadow: 0 1px 6px rgba(0,0,0,.06); }
+  .advice-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .advice-text { font-size: 14px; color: #444; line-height: 1.7; white-space: pre-wrap; }
+  .advice-empty { color: #bbb; font-size: 13px; }
+
+  /* Chat */
+  .chat-area { max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+  .chat-bubble { padding: 10px 14px; max-width: 85%; font-size: 14px; line-height: 1.5; white-space: pre-wrap; }
+  .chat-bubble.user { align-self: flex-end; background: #3d6b4f; color: #fff; border-radius: 16px 16px 4px 16px; }
+  .chat-bubble.ai { align-self: flex-start; background: #f0ede8; color: #333; border-radius: 16px 16px 16px 4px; }
+  .chat-thinking { align-self: flex-start; background: #f0ede8; border-radius: 16px 16px 16px 4px; padding: 10px 14px; color: #888; font-size: 13px; }
+
+  /* Modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 100; display: flex; align-items: center; justify-content: center; }
+  .modal { background: #fff; border-radius: 20px; padding: 24px; width: 90%; max-width: 400px; }
+  .modal h3 { font-size: 18px; margin-bottom: 16px; }
+  .modal label { font-size: 13px; color: #666; display: block; margin-bottom: 4px; }
+  .modal input { width: 100%; border: 1px solid #ddd; border-radius: 10px; padding: 8px 12px; font-size: 15px; outline: none; margin-bottom: 12px; }
+  .modal-btns { display: flex; gap: 10px; margin-top: 6px; }
+  .btn-cancel { flex: 1; background: #eee; border: none; border-radius: 10px; padding: 12px; font-size: 14px; }
+  .btn-save { flex: 1; background: #3d6b4f; color: #fff; border: none; border-radius: 10px; padding: 12px; font-size: 14px; }
+
+  /* API Key screen */
+  .setup-screen { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 24px; text-align: center; }
+  .setup-screen h2 { font-size: 22px; font-weight: 800; color: #2d4a38; margin-bottom: 8px; }
+  .setup-screen p { font-size: 14px; color: #666; line-height: 1.6; margin-bottom: 20px; }
+  .setup-screen a { color: #3d6b4f; }
+  .setup-screen input { width: 100%; border: 1px solid #ddd; border-radius: 12px; padding: 12px 16px; font-size: 14px; outline: none; margin-bottom: 12px; }
+  .setup-screen .btn-start { width: 100%; background: #3d6b4f; color: #fff; border: none; border-radius: 12px; padding: 14px; font-size: 16px; font-weight: 700; }
+  .setup-screen .skip-btn { background: none; border: none; color: #aaa; font-size: 13px; margin-top: 12px; text-decoration: underline; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+// ── STORAGE (localStorage) ──────────────────────────────────────────────────
+function load(key, def) {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; } catch { return def; }
+}
+function save(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+}
+
+// ── STATE ───────────────────────────────────────────────────────────────────
+const state = {
+  tab: "今日",
+  apiKey: load("diet-apikey", ""),
+  logs: load("diet-logs", []),
+  exercises: load("diet-exercises", []),
+  weights: load("diet-weights", []),
+  goals: load("diet-goals", { calories: 1500, protein: 100, fat: 60, carbs: 150, water: 2000 }),
+  water: load("diet-water-" + todayStr(), 0),
+  mealType: "早餐",
+  exerciseType: "重訓",
+  activeDate: todayStr(),
+  showSettings: false,
+  showApiSetup: false,
+  aiLoading: false,
+  imgLoading: false,
+  chatMessages: [],
+  chatInput: "",
+  dailyAdvice: "",
+  weeklyAdvice: "",
+  dailyLoading: false,
+  weeklyLoading: false,
+  foodInput: "",
+  exName: "", exMins: "", exKcal: "",
+  wInput: "", bfInput: "",
+  calYear: new Date().getFullYear(),
+  calMonth: new Date().getMonth(),
+};
+
+function todayStr() { return new Date().toISOString().slice(0, 10); }
+function formatDate(d) { const dt = new Date(d + "T00:00:00"); return `${dt.getMonth()+1}月${dt.getDate()}日`; }
+
+function setState(patch) {
+  Object.assign(state, patch);
+  if (patch.logs !== undefined) save("diet-logs", state.logs);
+  if (patch.exercises !== undefined) save("diet-exercises", state.exercises);
+  if (patch.weights !== undefined) save("diet-weights", state.weights);
+  if (patch.goals !== undefined) save("diet-goals", state.goals);
+  if (patch.water !== undefined) save("diet-water-" + todayStr(), state.water);
+  if (patch.apiKey !== undefined) save("diet-apikey", state.apiKey);
+  render();
+}
+
+// ── API ─────────────────────────────────────────────────────────────────────
+async function callClaude(messages, systemPrompt) {
+  if (!state.apiKey) return "請先在設定中填入 Anthropic API Key。";
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-api-key": state.apiKey, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
+    body: JSON.stringify({ model: "claude-opus-4-5", max_tokens: 1000, system: systemPrompt, messages })
+  });
+  const data = await res.json();
+  if (data.error) return "API 錯誤：" + data.error.message;
+  return data.content?.[0]?.text || "無回應";
+}
+
+async function analyzeImage(b64, mediaType) {
+  if (!state.apiKey) return null;
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-api-key": state.apiKey, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
+    body: JSON.stringify({
+      model: "claude-opus-4-5", max_tokens: 500,
+      messages: [{ role: "user", content: [
+        { type: "image", source: { type: "base64", media_type: mediaType, data: b64 } },
+        { type: "text", text: '請辨識這張食物照片，以JSON回傳：{"name":"名稱","calories":數字,"protein":數字,"fat":數字,"carbs":數字,"description":"簡短說明"}，只回傳JSON。' }
+      ]}]
+    })
+  });
+  const data = await res.json();
+  try { return JSON.parse((data.content?.[0]?.text || "{}").replace(/```json|```/g,"")); } catch { return null; }
+}
+
+function getSystemPrompt() {
+  const t = state.logs.filter(l => l.date === todayStr()).reduce((a,l) => ({
+    cal: a.cal+(l.calories||0), protein: a.protein+(l.protein||0), fat: a.fat+(l.fat||0), carbs: a.carbs+(l.carbs||0)
+  }), {cal:0,protein:0,fat:0,carbs:0});
+  const ex = state.exercises.filter(e => e.date === todayStr());
+  const lw = [...state.weights].sort((a,b)=>a.date.localeCompare(b.date)).slice(-1)[0];
+  return `你是專業健康管理AI教練。用中文回答，語氣溫暖專業，簡潔有力。
+用戶目標：每日熱量${state.goals.calories}kcal、蛋白質${state.goals.protein}g、脂肪${state.goals.fat}g、碳水${state.goals.carbs}g
+今日飲食：熱量${t.cal}kcal、蛋白質${t.protein}g、脂肪${t.fat}g、碳水${t.carbs}g
+今日運動：${ex.map(e=>`${e.name}${e.minutes}分消耗${e.calories}kcal`).join("、")||"無"}
+最新體重：${lw?lw.weight+"kg":"未記錄"}`;
+}
+
+// ── HANDLERS ────────────────────────────────────────────────────────────────
+async function handleFoodAI() {
+  if (!state.foodInput.trim()) return;
+  setState({ aiLoading: true });
+  const text = await callClaude(
+    [{ role: "user", content: `食物：${state.foodInput}` }],
+    '你是營養師AI。用戶輸入食物，回傳JSON：{"name":"名稱","calories":數字,"protein":數字,"fat":數字,"carbs":數字}，只回傳JSON。'
+  );
+  try {
+    const d = JSON.parse(text.replace(/```json|```/g,"").trim());
+    setState({ logs: [...state.logs, {...d, date: todayStr(), id: Date.now(), mealType: state.mealType }], foodInput: "", aiLoading: false });
+  } catch { setState({ aiLoading: false }); }
+}
+
+async function handlePhoto(file) {
+  setState({ imgLoading: true });
+  const reader = new FileReader();
+  reader.onload = async (ev) => {
+    const b64 = ev.target.result.split(",")[1];
+    const result = await analyzeImage(b64, file.type);
+    if (result) setState({ logs: [...state.logs, {...result, date: todayStr(), id: Date.now(), mealType: state.mealType }] });
+    setState({ imgLoading: false });
+  };
+  reader.readAsDataURL(file);
+}
+
+function addExercise() {
+  if (!state.exMins) return;
+  const entry = { id: Date.now(), date: todayStr(), type: state.exerciseType, name: state.exName || state.exerciseType, minutes: +state.exMins, calories: +state.exKcal || Math.round(+state.exMins * 5) };
+  setState({ exercises: [...state.exercises, entry], exName: "", exMins: "", exKcal: "" });
+}
+
+function addWeight() {
+  if (!state.wInput) return;
+  setState({ weights: [...state.weights, { id: Date.now(), date: todayStr(), weight: +state.wInput, bodyFat: state.bfInput ? +state.bfInput : null }], wInput: "", bfInput: "" });
+}
+
+async function genDailyAdvice() {
+  setState({ dailyLoading: true });
+  const text = await callClaude([{ role: "user", content: "請給我今日飲食與運動建議，簡潔列出3點：今日做得好的、還需補充的、晚餐建議。" }], getSystemPrompt());
+  setState({ dailyAdvice: text, dailyLoading: false });
+}
+
+async function genWeeklyAdvice() {
+  const ago = new Date(Date.now()-7*86400000).toISOString().slice(0,10);
+  const wl = state.logs.filter(l=>l.date>=ago);
+  const avg = Math.round(wl.reduce((a,l)=>a+(l.calories||0),0)/7);
+  setState({ weeklyLoading: true });
+  const text = await callClaude([{ role: "user", content: `本週平均每日熱量${avg}kcal，給我本週飲食趨勢分析與下週改善建議（3點）。` }], getSystemPrompt());
+  setState({ weeklyAdvice: text, weeklyLoading: false });
+}
+
+async function sendChat() {
+  if (!state.chatInput.trim()) return;
+  const newMsg = { role: "user", content: state.chatInput };
+  const msgs = [...state.chatMessages, newMsg];
+  setState({ chatMessages: msgs, chatInput: "", aiLoading: true });
+  const text = await callClaude(msgs, getSystemPrompt());
+  setState({ chatMessages: [...msgs, { role: "assistant", content: text }], aiLoading: false });
+}
+
+// ── RENDER HELPERS ──────────────────────────────────────────────────────────
+function pct(v, g) { return Math.min(100, Math.round((v/g)*100)); }
+
+function h(tag, attrs, ...children) {
+  const el = document.createElement(tag);
+  if (attrs) Object.entries(attrs).forEach(([k,v]) => {
+    if (k === "className") el.className = v;
+    else if (k === "style") Object.assign(el.style, v);
+    else if (k.startsWith("on")) el.addEventListener(k.slice(2).toLowerCase(), v);
+    else el.setAttribute(k, v);
+  });
+  children.flat().forEach(c => {
+    if (c == null || c === false) return;
+    el.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+  });
+  return el;
+}
+
+// ── RENDER SECTIONS ─────────────────────────────────────────────────────────
+function renderApiSetup() {
+  let key = "";
+  const inp = h("input", { type: "password", placeholder: "sk-ant-api...", onInput: e => key = e.target.value });
+  return h("div", { className: "setup-screen" },
+    h("div", { style: { fontSize: 48, marginBottom: 16 } }, "🥗"),
+    h("h2", {}, "飲食日記"),
+    h("p", {}, "首次使用需要填入 Anthropic API Key，才能使用 AI 飲食分析功能。",
+      h("br",{}),
+      h("a", { href: "https://console.anthropic.com/", target: "_blank" }, "→ 點此取得 API Key")
+    ),
+    inp,
+    h("button", { className: "btn-start", onClick: () => {
+      if (key.trim()) setState({ apiKey: key.trim(), showApiSetup: false });
+    }}, "開始使用"),
+    h("button", { className: "skip-btn", onClick: () => { localStorage.setItem('diet-apikey-skipped','1'); setState({ showApiSetup: false }); } }, "略過（不使用AI功能）")
+  );
+}
+
+function renderToday() {
+  const today = todayStr();
+  const tLogs = state.logs.filter(l => l.date === today);
+  const tot = tLogs.reduce((a,l)=>({ cal:a.cal+(l.calories||0), protein:a.protein+(l.protein||0), fat:a.fat+(l.fat||0), carbs:a.carbs+(l.carbs||0) }), {cal:0,protein:0,fat:0,carbs:0});
+  const g = state.goals;
+
+  const mealTypes = ["早餐","午餐","晚餐","點心","飲料","其他"];
+  const MEAL_TYPES = mealTypes;
+
+  const fileInp = h("input", { type: "file", accept: "image/*", style: { display:"none" } });
+  fileInp.addEventListener("change", e => { if (e.target.files[0]) handlePhoto(e.target.files[0]); e.target.value=""; });
+
+  const foodInp = h("input", { type: "text", placeholder: "例：雞胸肉 200g、牛奶 250ml…", value: state.foodInput });
+  foodInp.addEventListener("input", e => state.foodInput = e.target.value);
+  foodInp.addEventListener("keydown", e => { if (e.key==="Enter") handleFoodAI(); });
+
+  const nutColors = ["#e05a2b","#3d6b4f","#c4922a","#b04040"];
+  const nutLabels = ["熱量","蛋白質","脂肪","碳水"];
+  const nutVals = [tot.cal, tot.protein, tot.fat, tot.carbs];
+  const nutGoals = [g.calories, g.protein, g.fat, g.carbs];
+  const nutUnits = ["kcal","g","g","g"];
+
+  const mealSections = MEAL_TYPES.map(mt => {
+    const items = tLogs.filter(l => l.mealType === mt);
+    if (!items.length) return null;
+    return h("div", {},
+      h("div", { className: "meal-section-label" }, mt),
+      ...items.map(item =>
+        h("div", { className: "card-sm" },
+          h("div", { className: "log-item" },
+            h("div", {},
+              h("div", { className: "log-item-name" }, item.name),
+              item.description ? h("div", { className: "log-item-desc" }, item.description) : null
+            ),
+            h("div", { className: "log-item-right" },
+              h("div", { style: { textAlign:"right" } },
+                h("span", { className: "log-item-cal" }, item.calories),
+                h("span", { style: { fontSize:11, color:"#aaa" } }, " kcal"),
+                h("div", { className: "log-item-macro" }, `蛋${item.protein}g 脂${item.fat}g 碳${item.carbs}g`)
+              ),
+              h("button", { className: "btn-remove", onClick: () => setState({ logs: state.logs.filter(l=>l.id!==item.id) }) }, "×")
+            )
+          )
+        )
+      )
+    );
+  }).filter(Boolean);
+
+  return h("div", { className: "content" },
+    tot.cal < g.calories * 0.5 ? h("div", { className: "alert" }, `⚠️ 今日攝取低於基礎代謝率，建議至少吃 `, h("strong",{},`${g.calories} kcal`)) : null,
+
+    h("div", { className: "card" },
+      h("div", { className: "nutrition-grid" },
+        ...nutLabels.map((label,i) =>
+          h("div", {},
+            h("div", { className: "nutrition-label" }, label),
+            h("div", { className: "nutrition-val", style: { color: nutColors[i] } },
+              String(nutVals[i]),
+              h("span", { className: "nutrition-sub" }, `/${nutGoals[i]}${nutUnits[i]}`)
+            ),
+            h("div", { className: "progress-bar" },
+              h("div", { className: "progress-fill", style: { background: nutColors[i], width: pct(nutVals[i],nutGoals[i])+"%" } })
+            )
+          )
+        )
+      )
+    ),
+
+    h("div", { className: "card" },
+      h("div", { className: "water-row" },
+        h("span", { style: { fontSize:20 } }, "💧"),
+        h("div", { style: { flex:1 } },
+          h("div", { style: { fontSize:12, color:"#999" } }, `喝水 ${state.water}/${g.water}ml`),
+          h("div", { className: "progress-bar", style: { marginTop:4 } },
+            h("div", { className: "progress-fill", style: { background:"#5ba3d0", width: pct(state.water,g.water)+"%" } })
+          )
+        ),
+        h("div", { className: "water-btns" },
+          ...[100,300,500].map(n => h("button", { className: "water-btn", onClick: () => setState({ water: Math.min(state.water+n,g.water) }) }, `+${n}`)),
+          h("button", { className: "water-reset", onClick: () => setState({ water: 0 }) }, "重設")
+        )
+      )
+    ),
+
+    h("div", { className: "pills" },
+      ...["早餐","午餐","晚餐","點心","飲料","其他"].map(t =>
+        h("button", { className: "pill" + (state.mealType===t?" active":""), onClick: () => setState({ mealType: t }) }, t)
+      )
+    ),
+
+    h("div", { className: "card input-row" },
+      foodInp,
+      h("button", { className: "btn-primary", disabled: state.aiLoading, onClick: handleFoodAI }, state.aiLoading ? "…" : "AI解析"),
+      h("button", { className: "btn-secondary", disabled: state.imgLoading, onClick: () => fileInp.click() }, state.imgLoading ? "…" : "📷"),
+      fileInp
+    ),
+
+    ...mealSections
+  );
+}
+
+function renderExercise() {
+  const today = todayStr();
+  const todayEx = state.exercises.filter(e => e.date === today);
+  const totalBurn = todayEx.reduce((a,e)=>a+(e.calories||0),0);
+
+  const nameInp = h("input", { type:"text", placeholder:"運動名稱（選填）", value: state.exName });
+  nameInp.addEventListener("input", e => state.exName = e.target.value);
+  const minsInp = h("input", { type:"number", placeholder:"分鐘", value: state.exMins });
+  minsInp.addEventListener("input", e => state.exMins = e.target.value);
+  const kcalInp = h("input", { type:"number", placeholder:"大卡", value: state.exKcal });
+  kcalInp.addEventListener("input", e => state.exKcal = e.target.value);
+
+  return h("div", { className: "content" },
+    h("div", { className: "exercise-hero" },
+      h("div", { className: "exercise-hero-label" }, "今日消耗"),
+      h("div", { className: "exercise-hero-val" }, String(totalBurn), h("span", { style: { fontSize:16, fontWeight:400 } }, " kcal"))
+    ),
+    h("div", { className: "pills" },
+      ...["有氧","重訓","爬坡","走路","游泳","其他"].map(t =>
+        h("button", { className: "pill" + (state.exerciseType===t?" active":""), onClick: () => setState({ exerciseType: t }) }, t)
+      )
+    ),
+    h("div", { className: "card input-row" },
+      nameInp, minsInp, kcalInp,
+      h("button", { className: "btn-primary", onClick: addExercise }, "記錄")
+    ),
+    ...todayEx.map(e =>
+      h("div", { className: "card-sm" },
+        h("div", { className: "exercise-item" },
+          h("div", {},
+            h("div", { style: { fontWeight:700, fontSize:15 } }, e.name),
+            h("div", { style: { fontSize:12, color:"#999" } }, `${e.type} · ${e.minutes}分`)
+          ),
+          h("div", { style: { display:"flex", gap:10, alignItems:"center" } },
+            h("span", { className: "exercise-burn" }, `-${e.calories}kcal`),
+            h("button", { className: "btn-remove", onClick: () => setState({ exercises: state.exercises.filter(x=>x.id!==e.id) }) }, "×")
+          )
+        )
+      )
+    )
+  );
+}
+
+function renderCalendar() {
+  const { calYear, calMonth, activeDate } = state;
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+
+  const getDayCal = d => {
+    const ds = `${calYear}-${String(calMonth+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    return state.logs.filter(l=>l.date===ds).reduce((a,l)=>a+(l.calories||0),0);
+  };
+
+  const selLogs = state.logs.filter(l=>l.date===activeDate);
+  const selEx = state.exercises.filter(e=>e.date===activeDate);
+  const selCal = selLogs.reduce((a,l)=>a+(l.calories||0),0);
+
+  const calDays = [];
+  ["日","一","二","三","四","五","六"].forEach(d => calDays.push(h("div",{ className:"cal-day-label" },d)));
+  for (let i=0; i<firstDay; i++) calDays.push(h("div",{}));
+  for (let d=1; d<=daysInMonth; d++) {
+    const ds = `${calYear}-${String(calMonth+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const cal = getDayCal(d);
+    const isToday = ds === todayStr();
+    const isSel = ds === activeDate;
+    const cls = "cal-day" + (isSel?" selected":isToday?" today":"");
+    calDays.push(h("div", { className: cls, onClick: () => setState({ activeDate: ds }) },
+      String(d),
+      cal > 0 ? h("div", { className: "cal-day-kcal" }, String(cal)) : null
+    ));
+  }
+
+  return h("div", { className: "content" },
+    h("div", { className: "card" },
+      h("div", { className: "calendar-header" },
+        h("button", { className: "cal-nav", onClick: () => {
+          if (calMonth===0) setState({ calMonth:11, calYear: calYear-1 });
+          else setState({ calMonth: calMonth-1 });
+        }}, "‹ 上月"),
+        h("strong", {}, `${calYear}年${calMonth+1}月`),
+        h("button", { className: "cal-nav", onClick: () => {
+          if (calMonth===11) setState({ calMonth:0, calYear: calYear+1 });
+          else setState({ calMonth: calMonth+1 });
+        }}, "下月 ›")
+      ),
+      h("div", { className: "cal-grid" }, ...calDays)
+    ),
+    activeDate ? h("div", { className: "card" },
+      h("div", { style: { display:"flex", justifyContent:"space-between", marginBottom:10 } },
+        h("strong", {}, formatDate(activeDate)),
+        h("span", { style: { color:"#e05a2b", fontWeight:700 } }, `${selCal} kcal`)
+      ),
+      selLogs.length===0 && selEx.length===0 ? h("div",{ style:{ color:"#bbb",fontSize:13 } },"無記錄") : null,
+      ...selLogs.map(l => h("div",{ className:"day-detail-row" },
+        h("span",{},`${l.mealType} · ${l.name}`),
+        h("span",{ style:{ color:"#888" } },`${l.calories}kcal`)
+      )),
+      ...selEx.map(e => h("div",{ className:"day-detail-row", style:{ color:"#3d6b4f" } },
+        h("span",{},`🏃 ${e.name} ${e.minutes}分`),
+        h("span",{},`-${e.calories}kcal`)
+      ))
+    ) : null
+  );
+}
+
+function renderWeight() {
+  const sorted = [...state.weights].sort((a,b)=>a.date.localeCompare(b.date));
+  const latest = sorted.slice(-1)[0];
+  const earliest = sorted[0];
+  const barMax = sorted.length ? Math.max(...sorted.map(w=>w.weight))+5 : 100;
+
+  const wInp = h("input",{ type:"number", step:"0.1", placeholder:"體重 kg", value: state.wInput });
+  wInp.addEventListener("input", e => state.wInput = e.target.value);
+  const bfInp = h("input",{ type:"number", step:"0.1", placeholder:"體脂 % (選填)", value: state.bfInput });
+  bfInp.addEventListener("input", e => state.bfInput = e.target.value);
+
+  return h("div", { className: "content" },
+    latest ? h("div", { className: "weight-grid" },
+      h("div", { className: "weight-hero", style: { background:"#3d6b4f" } },
+        h("div", { style:{ fontSize:12,opacity:.8 } }, "目前體重"),
+        h("div", { className: "weight-hero-val" }, String(latest.weight), h("span",{ style:{fontSize:14} },"kg")),
+        earliest && earliest.id!==latest.id ? h("div",{ style:{fontSize:12,opacity:.8} },
+          `${latest.weight<earliest.weight?"↓":"↑"} ${Math.abs(latest.weight-earliest.weight).toFixed(1)}kg`
+        ) : null
+      ),
+      latest.bodyFat ? h("div",{ className:"weight-hero", style:{background:"#c4922a"} },
+        h("div",{ style:{fontSize:12,opacity:.8} },"體脂率"),
+        h("div",{ className:"weight-hero-val" },String(latest.bodyFat),h("span",{style:{fontSize:14}},"%"))
+      ) : h("div",{})
+    ) : null,
+
+    h("div", { className:"card input-row" },
+      wInp, bfInp,
+      h("button", { className:"btn-primary", onClick: addWeight }, "記錄")
+    ),
+
+    sorted.length > 0 ? h("div", { className:"card" },
+      h("div", { style:{ fontSize:13,color:"#888",marginBottom:12 } }, "體重趨勢"),
+      h("div", { className:"weight-bar-chart" },
+        ...sorted.slice(-14).map(w =>
+          h("div", { className:"weight-bar-wrap" },
+            h("div", { style:{ fontSize:9,color:"#888",marginBottom:2 } }, String(w.weight)),
+            h("div", { className:"weight-bar", style:{ height: Math.round((w.weight/barMax)*100)+"px" } }),
+            h("div", { style:{ fontSize:9,color:"#bbb",marginTop:3 } }, w.date.slice(5))
+          )
+        )
+      )
+    ) : null,
+
+    h("div", { className:"card" },
+      h("div", { style:{ fontSize:13,color:"#888",marginBottom:8 } }, "歷史記錄"),
+      ...[...sorted].reverse().slice(0,20).map(w =>
+        h("div", { className:"weight-history-row" },
+          h("span",{ style:{color:"#888"} }, formatDate(w.date)),
+          h("div",{ style:{display:"flex",gap:10,alignItems:"center"} },
+            h("span",{ style:{fontWeight:700} }, `${w.weight}kg`),
+            w.bodyFat ? h("span",{ style:{color:"#c4922a"} }, `${w.bodyFat}%`) : null,
+            h("button",{ className:"btn-remove", onClick:()=>setState({ weights:state.weights.filter(x=>x.id!==w.id) }) },"×")
+          )
+        )
+      ),
+      sorted.length===0 ? h("div",{ style:{color:"#bbb",fontSize:13} },"尚無記錄") : null
+    )
+  );
+}
+
+function renderAdvice() {
+  const chatInp = h("input",{ type:"text", placeholder:"例：我今天蛋白質不夠，晚餐該吃什麼？", value: state.chatInput });
+  chatInp.addEventListener("input", e => state.chatInput = e.target.value);
+  chatInp.addEventListener("keydown", e => { if(e.key==="Enter") sendChat(); });
+
+  const chatArea = h("div", { className:"chat-area" },
+    ...state.chatMessages.map(m =>
+      h("div", { className: "chat-bubble " + (m.role==="user"?"user":"ai") }, m.content)
+    ),
+    state.aiLoading ? h("div",{ className:"chat-thinking" },"AI 思考中…") : null
+  );
+  setTimeout(() => { chatArea.scrollTop = chatArea.scrollHeight; }, 0);
+
+  return h("div", { className:"content" },
+    h("div", { className:"advice-card" },
+      h("div", { className:"advice-header" },
+        h("strong",{},"今日建議"),
+        h("button",{ className:"btn-primary", disabled:state.dailyLoading, onClick:genDailyAdvice },
+          state.dailyLoading?"生成中…":"重新生成")
+      ),
+      state.dailyAdvice
+        ? h("div",{ className:"advice-text" }, state.dailyAdvice)
+        : h("div",{ className:"advice-empty" },"點擊「重新生成」取得今日建議")
+    ),
+    h("div", { className:"advice-card" },
+      h("div", { className:"advice-header" },
+        h("strong",{},"每週建議"),
+        h("button",{ className:"btn-secondary", disabled:state.weeklyLoading, onClick:genWeeklyAdvice },
+          state.weeklyLoading?"分析中…":"生成建議")
+      ),
+      state.weeklyAdvice
+        ? h("div",{ className:"advice-text" }, state.weeklyAdvice)
+        : h("div",{ className:"advice-empty" },"根據本週趨勢調整方向")
+    ),
+    h("div", { className:"advice-card" },
+      h("strong",{ style:{display:"block",marginBottom:12} },"💬 問問 AI 教練"),
+      chatArea,
+      h("div", { className:"input-row" },
+        chatInp,
+        h("button",{ className:"btn-primary", disabled:state.aiLoading, onClick:sendChat },"發送")
+      )
+    )
+  );
+}
+
+function renderSettings() {
+  const fields = [
+    { key:"calories", label:"每日熱量 (kcal)" },
+    { key:"protein", label:"蛋白質 (g)" },
+    { key:"fat", label:"脂肪 (g)" },
+    { key:"carbs", label:"碳水 (g)" },
+    { key:"water", label:"喝水 (ml)" },
+  ];
+  const localGoals = { ...state.goals };
+  let localKey = state.apiKey;
+
+  const inputs = fields.map(({ key, label }) => {
+    const inp = h("input",{ type:"number", value: String(localGoals[key]) });
+    inp.addEventListener("input", e => localGoals[key] = +e.target.value);
+    return h("div", {},
+      h("label",{}, label),
+      inp
+    );
+  });
+
+  const keyInp = h("input",{ type:"password", placeholder:"sk-ant-api...", value: localKey });
+  keyInp.addEventListener("input", e => localKey = e.target.value);
+
+  return h("div", { className:"modal-overlay", onClick: e => { if(e.target===e.currentTarget) setState({ showSettings:false }); }},
+    h("div", { className:"modal" },
+      h("h3",{},"設定"),
+      ...inputs,
+      h("label",{},"Anthropic API Key"),
+      keyInp,
+      h("div", { className:"modal-btns" },
+        h("button",{ className:"btn-cancel", onClick:()=>setState({ showSettings:false }) },"取消"),
+        h("button",{ className:"btn-save", onClick:()=>setState({ goals:localGoals, apiKey:localKey, showSettings:false }) },"儲存")
+      )
+    )
+  );
+}
+
+// ── MAIN RENDER ─────────────────────────────────────────────────────────────
+function render() {
+  const app = document.getElementById("app");
+  app.innerHTML = "";
+
+  if (!state.apiKey && state.showApiSetup !== false && !load("diet-apikey-skipped","")) {
+    // First time: show setup
+    if (state.showApiSetup === false || state.showApiSetup === undefined) {
+      state.showApiSetup = true;
+    }
+  }
+
+  if (state.showApiSetup === true) {
+    app.appendChild(renderApiSetup());
+    return;
+  }
+
+  const today = new Date();
+  const dateLabel = `${today.getMonth()+1}月${today.getDate()}日 週${"日一二三四五六"[today.getDay()]}`;
+
+  const header = h("div", { className:"header" },
+    h("div", { className:"header-top" },
+      h("h1",{},"飲食日記"),
+      h("div", { className:"header-actions" },
+        h("div", { className:"date-badge" }, dateLabel),
+        h("button", { className:"btn-settings", onClick:()=>setState({ showSettings:true }) }, "設定")
+      )
+    ),
+    h("div", { className:"tabs" },
+      ...["今日","運動","日曆","體重","建議"].map(t =>
+        h("button",{ className:"tab-btn"+(state.tab===t?" active":""), onClick:()=>setState({ tab:t }) }, t)
+      )
+    )
+  );
+
+  let content;
+  if (state.tab==="今日") content = renderToday();
+  else if (state.tab==="運動") content = renderExercise();
+  else if (state.tab==="日曆") content = renderCalendar();
+  else if (state.tab==="體重") content = renderWeight();
+  else content = renderAdvice();
+
+  const wrap = h("div", { id:"app-inner" }, header, content);
+  app.appendChild(wrap);
+
+  if (state.showSettings) app.appendChild(renderSettings());
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+// Check if first time
+if (!state.apiKey && !localStorage.getItem("diet-apikey-skipped")) {
+  state.showApiSetup = true;
+} else {
+  state.showApiSetup = false;
+}
+
+// Patch skip button to set flag
+const origRenderApiSetup = renderApiSetup;
+// Override skip handler
+window.addEventListener("DOMContentLoaded", () => {});
+
+render();
+</script>
+</body>
+</html>
