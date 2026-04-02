@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="飲食日記">
-<title>飲食日記</title>
+<meta name="apple-mobile-web-app-title" content="KaKalorie">
+<title>KaKalorie</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -320,7 +320,7 @@ function renderApiSetup() {
   const inp = h("input", { type: "password", placeholder: "sk-ant-api...", onInput: e => key = e.target.value });
   return h("div", { className: "setup-screen" },
     h("div", { style: { fontSize: 48, marginBottom: 16 } }, "🥗"),
-    h("h2", {}, "飲食日記"),
+    h("h2", {}, "KaKalorie"),
     h("p", {}, "首次使用需要填入 Anthropic API Key，才能使用 AI 飲食分析功能。",
       h("br",{}),
       h("a", { href: "https://console.anthropic.com/", target: "_blank" }, "→ 點此取得 API Key")
@@ -704,7 +704,7 @@ function render() {
 
   const header = h("div", { className:"header" },
     h("div", { className:"header-top" },
-      h("h1",{},"飲食日記"),
+      h("h1",{},"KaKalorie"),
       h("div", { className:"header-actions" },
         h("div", { className:"date-badge" }, dateLabel),
         h("button", { className:"btn-settings", onClick:()=>setState({ showSettings:true }) }, "設定")
